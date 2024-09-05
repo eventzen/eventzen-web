@@ -1,51 +1,73 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@supabase/supabase-js'
+
+// Define the Event interface
+interface Event {
+  id: number;
+  title: string;
+  date: string;
+  location: string;
+  description: string;
+}
+
+// Initialize the Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export default function Home() {
+  const [events, setEvents] = useState<Event[]>([])
+  const [loading, setLoading] = useState(true)
   const [title, setTitle] = useState('')
   const [date, setDate] = useState('')
   const [location, setLocation] = useState('')
   const [description, setDescription] = useState('')
-  const [events, setEvents] = useState([])
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchEvents()
   }, [])
 
-  const fetchEvents = async () => {
-    setLoading(true)
-    const { data, error } = await supabase
-      .from('events')
-      .select('*')
-      .order('date', { ascending: true })
-
-    if (error) {
+  async function fetchEvents() {
+    try {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+      
+      if (error) {
+        throw error
+      }
+      
+      if (data) {
+        setEvents(data as Event[])
+      }
+    } catch (error) {
       console.error('Error fetching events:', error)
-    } else {
-      setEvents(data)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const event = { title, date, location, description }
-    const { data, error } = await supabase
-      .from('events')
-      .insert([event])
-      .select()
-
-    if (error) {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .insert([{ title, date, location, description }])
+      
+      if (error) throw error
+      
+      if (data) {
+        setEvents([...events, ...(data as Event[])])
+        setTitle('')
+        setDate('')
+        setLocation('')
+        setDescription('')
+      }
+    } catch (error) {
       console.error('Error creating event:', error)
-    } else {
-      setTitle('')
-      setDate('')
-      setLocation('')
-      setDescription('')
-      fetchEvents()
     }
   }
 
@@ -54,7 +76,7 @@ export default function Home() {
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold text-center mb-8 text-black">Welcome to EventZen</h1>
         
-        <form onSubmit={handleSubmit} className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+        <form onSubmit={handleSubmit} className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md mb-8">
           <div className="mb-4">
             <label htmlFor="title" className="block text-gray-700 font-bold mb-2">Event Title</label>
             <input
@@ -113,7 +135,7 @@ export default function Home() {
           {loading ? (
             <p>Loading events...</p>
           ) : (
-            events.map((event: any) => (
+            events.map((event) => (
               <div key={event.id} className="bg-white p-4 mb-4 rounded-lg shadow">
                 <h3 className="font-bold">{event.title}</h3>
                 <p>Date: {new Date(event.date).toLocaleDateString()}</p>
