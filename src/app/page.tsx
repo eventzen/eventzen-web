@@ -1,151 +1,53 @@
-'use client'
+import Link from 'next/link';
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
-
-// Define the Event interface
-interface Event {
-  id: number;
-  title: string;
-  date: string;
-  location: string;
-  description: string;
-}
-
-// Initialize the Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
-export default function Home() {
-  const [events, setEvents] = useState<Event[]>([])
-  const [loading, setLoading] = useState(true)
-  const [title, setTitle] = useState('')
-  const [date, setDate] = useState('')
-  const [location, setLocation] = useState('')
-  const [description, setDescription] = useState('')
-
-  useEffect(() => {
-    fetchEvents()
-  }, [])
-
-  async function fetchEvents() {
-    try {
-      setLoading(true)
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-      
-      if (error) {
-        throw error
-      }
-      
-      if (data) {
-        setEvents(data as Event[])
-      }
-    } catch (error) {
-      console.error('Error fetching events:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      const { data, error } = await supabase
-        .from('events')
-        .insert([{ title, date, location, description }])
-      
-      if (error) throw error
-      
-      if (data) {
-        setEvents([...events, ...(data as Event[])])
-        setTitle('')
-        setDate('')
-        setLocation('')
-        setDescription('')
-      }
-    } catch (error) {
-      console.error('Error creating event:', error)
-    }
-  }
-
+const HomePage = () => {
   return (
-    <div className="min-h-screen bg-gray-100">
-      <main className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-center mb-8 text-black">Welcome to EventZen</h1>
-        
-        <form onSubmit={handleSubmit} className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md mb-8">
-          <div className="mb-4">
-            <label htmlFor="title" className="block text-gray-700 font-bold mb-2">Event Title</label>
-            <input
-              type="text"
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label htmlFor="date" className="block text-gray-700 font-bold mb-2">Date</label>
-            <input
-              type="date"
-              id="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label htmlFor="location" className="block text-gray-700 font-bold mb-2">Location</label>
-            <input
-              type="text"
-              id="location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label htmlFor="description" className="block text-gray-700 font-bold mb-2">Description</label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-              rows={4}
-              required
-            ></textarea>
-          </div>
-          
-          <button type="submit" className="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200">
-            Create Event
-          </button>
-        </form>
+    <div className="bg-background text-foreground min-h-screen">
+      {/* Hero Section */}
+      <div className="hero bg-blue-500 text-white text-center py-20">
+        <h1 className="text-5xl font-bold mb-4 text-white">Plan Your Perfect Event with AI</h1>
+        <p className="text-lg mb-6 text-gray-200">
+          EventZen helps you organize the event of your dreams with personalized recommendations.
+        </p>
+        <Link href="/create-event" className="px-6 py-3 bg-white text-blue-500 rounded-full font-semibold">
+          Get Started
+        </Link>
+      </div>
 
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">Events</h2>
-          {loading ? (
-            <p>Loading events...</p>
-          ) : (
-            events.map((event) => (
-              <div key={event.id} className="bg-white p-4 mb-4 rounded-lg shadow">
-                <h3 className="font-bold">{event.title}</h3>
-                <p>Date: {new Date(event.date).toLocaleDateString()}</p>
-                <p>Location: {event.location}</p>
-                <p>{event.description}</p>
-              </div>
-            ))
-          )}
+      {/* How It Works Section */}
+      <section className="py-20 text-center bg-background text-foreground">
+        <h2 className="text-3xl font-bold mb-8">How It Works</h2>
+        <div className="flex justify-center space-x-10">
+          <div className="w-1/3">
+            <h3 className="text-2xl font-bold">Discover Vendors</h3>
+            <p>Find the best local vendors that fit your budget and style.</p>
+          </div>
+          <div className="w-1/3">
+            <h3 className="text-2xl font-bold">Track Your Budget</h3>
+            <p>Keep track of your event expenses in real time.</p>
+          </div>
+          <div className="w-1/3">
+            <h3 className="text-2xl font-bold">Customize Timelines</h3>
+            <p>Create detailed event timelines and stay organized.</p>
+          </div>
         </div>
-      </main>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="bg-gray-100 py-20">
+        <h2 className="text-center text-3xl font-bold mb-8">What Our Users Say</h2>
+        <p className="text-center">"EventZen made my wedding planning so much easier!" – Sarah J.</p>
+      </section>
+
+      {/* Call to Action Section */}
+      <section className="py-20 text-center bg-background text-foreground">
+        <h2 className="text-3xl font-bold mb-4">Ready to Plan Your Event?</h2>
+        <Link href="/create-event" className="px-6 py-3 bg-blue-500 text-white rounded-full font-semibold">
+          Start Now
+        </Link>
+      </section>
     </div>
-  )
-}
+  );
+};
+
+export default HomePage;
